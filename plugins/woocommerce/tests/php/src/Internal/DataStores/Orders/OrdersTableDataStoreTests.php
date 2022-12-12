@@ -1004,6 +1004,48 @@ class OrdersTableDataStoreTests extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox Test that the query counts works as expected.
+	 *
+	 * @return void
+	 */
+	public function test_cot_query_count() {
+		$this->assertEquals( 0, ( new OrdersTableQuery() )->found_orders, 'We initially have zero orders within our custom order tables.' );
+
+		for ( $i = 0; $i < 30; $i ++ ) {
+			$order = new WC_Order();
+			$this->switch_data_store( $order, $this->sut );
+			if ( 0 === $i % 2 ) {
+				$order->set_billing_address_2( 'Test' );
+			}
+			$order->save();
+		}
+
+		$query = new OrdersTableQuery( array( 'limit' => 5 ) );
+		$this->assertEquals( 30, $query->found_orders, 'Specifying limits still calculate all found orders.' );
+
+		// Count does not change based on the fields that we are fetching.
+		$query = new OrdersTableQuery(
+			array(
+				'fields' => 'ids',
+				'limit'  => 5,
+			)
+		);
+		$this->assertEquals( 30, $query->found_orders, 'Fetching specific field does not change query count.' );
+
+		$query = new OrdersTableQuery(
+			array(
+				'field_query' => array(
+					array(
+						'field' => 'billing_address_2',
+						'value' => 'Test',
+					),
+				),
+			)
+		);
+		$this->assertEquals( 15, $query->found_orders, 'Counting orders with a field query works.' );
+	}
+
+	/**
 	 * @testDox Test the `get_order_count()` method.
 	 */
 	public function test_get_order_count(): void {
@@ -1866,5 +1908,50 @@ class OrdersTableDataStoreTests extends WC_Unit_Test_Case {
 		$product = new \WC_Product();
 		$product->save();
 		$this->assertFalse( wc_get_order( $product->get_id() ) );
+	}
+
+	/**
+	 * @testDox Make sure that getting order type for non order return without warning.
+	 */
+	public function test_get_order_type_for_non_order() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->save();
+		$this->assertEquals( '', $this->sut->get_order_type( $product->get_id() ) );
+	}
+
+	/**
+	 * @testDox Test get order type working as expected.
+	 */
+	public function test_get_order_type_for_order() {
+		$order = $this->create_complex_cot_order();
+		$this->assertEquals( 'shop_order', $this->sut->get_order_type( $order->get_id() ) );
+	}
+
+	/**
+	 * @testDox Test that we are not duplicating address indexing when updating.
+	 */
+	public function test_address_index_saved_on_update() {
+		global $wpdb;
+		$this->toggle_cot( true );
+		$this->disable_cot_sync();
+		$order = new WC_Order();
+		$order->set_billing_address_1( '123 Main St' );
+		$order->save();
+
+		$this->assertTrue( false !== strpos( $order->get_meta( '_billing_address_index', true ), '123 Main St' ) );
+		$order = wc_get_order( $order->get_id() );
+		$order->set_billing_address_2( 'Apt 1' );
+		$order->save();
+
+		$order_meta_table = $this->sut::get_meta_table_name();
+		// Assert that we are not duplicating address indexes.
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$order_meta_table} WHERE order_id = %d AND meta_key = '_billing_address_index'", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$order->get_id()
+			)
+		);
+
+		$this->assertEquals( 1, $result );
 	}
 }

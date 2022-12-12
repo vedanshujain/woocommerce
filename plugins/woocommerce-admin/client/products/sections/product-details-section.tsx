@@ -213,19 +213,33 @@ export const ProductDetailsSection: React.FC = () => {
 						blocks={ summaryBlocks }
 						onChange={ ( blocks ) => {
 							setSummaryBlocks( blocks );
+							if ( ! summaryBlocks.length ) {
+								return;
+							}
 							setValue(
 								'short_description',
 								serialize( blocks )
 							);
 						} }
+						placeholder={ __(
+							"Summarize this product in 1-2 short sentences. We'll show it at the top of the page.",
+							'woocommerce'
+						) }
 					/>
 					<RichTextEditor
 						label={ __( 'Description', 'woocommerce' ) }
 						blocks={ descriptionBlocks }
 						onChange={ ( blocks ) => {
 							setDescriptionBlocks( blocks );
+							if ( ! descriptionBlocks.length ) {
+								return;
+							}
 							setValue( 'description', serialize( blocks ) );
 						} }
+						placeholder={ __(
+							'Describe this product. What makes it unique? What are its most important features?',
+							'woocommerce'
+						) }
 					/>
 				</CardBody>
 			</Card>

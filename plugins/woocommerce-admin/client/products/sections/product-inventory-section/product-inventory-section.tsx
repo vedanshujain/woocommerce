@@ -3,14 +3,11 @@
  */
 import { __ } from '@wordpress/i18n';
 import {
+	CollapsibleContent,
 	__experimentalConditionalWrapper as ConditionalWrapper,
 	Link,
 	useFormContext,
 } from '@woocommerce/components';
-import { cloneElement } from '@wordpress/element';
-import { getAdminLink } from '@woocommerce/settings';
-import { Product } from '@woocommerce/data';
-import { recordEvent } from '@woocommerce/tracks';
 import {
 	Card,
 	CardBody,
@@ -18,10 +15,14 @@ import {
 	TextControl,
 	Tooltip,
 } from '@wordpress/components';
+import { getAdminLink } from '@woocommerce/settings';
+import { Product } from '@woocommerce/data';
+import { recordEvent } from '@woocommerce/tracks';
 
 /**
  * Internal dependencies
  */
+import { AdvancedStockSection } from './advanced-stock-section';
 import { getCheckboxTracks } from '../utils';
 import { getAdminSetting } from '~/utils/admin-settings';
 import { ProductSectionLayout } from '../../layout/product-section-layout';
@@ -70,7 +71,9 @@ export const ProductInventorySection: React.FC = () => {
 							'SKU (Stock Keeping Unit)',
 							'woocommerce'
 						) }
-						{ ...getInputProps( 'sku' ) }
+						{ ...getInputProps( 'sku', {
+							className: 'half-width-field',
+						} ) }
 					/>
 					<div className="woocommerce-product-form__field">
 						<ConditionalWrapper
@@ -109,6 +112,11 @@ export const ProductInventorySection: React.FC = () => {
 					) : (
 						<ManualStockSection />
 					) }
+					<CollapsibleContent
+						toggleText={ __( 'Advanced', 'woocommerce' ) }
+					>
+						<AdvancedStockSection />
+					</CollapsibleContent>
 				</CardBody>
 			</Card>
 		</ProductSectionLayout>
