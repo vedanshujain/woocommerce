@@ -96,7 +96,7 @@ class WC_Admin_Menus {
 			$menu[] = array( '', 'read', 'separator-woocommerce', '', 'wp-menu-separator woocommerce' ); // WPCS: override ok.
 		}
 
-		add_menu_page( __( 'WooCommerce', 'woocommerce' ), __( 'WooCommerce', 'woocommerce' ), 'edit_others_shop_orders', 'woocommerce', null, $woocommerce_icon, '55.5' );
+		add_menu_page( __( 'Shop', 'woocommerce' ), __( 'Shop', 'woocommerce' ), 'edit_others_shop_orders', 'woocommerce', null, $woocommerce_icon, '4' );
 
 		// Work around https://github.com/woocommerce/woocommerce/issues/35677 (and related https://core.trac.wordpress.org/ticket/18857).
 		// Translating the menu item breaks screen IDs and page hooks, so we force the hookname to be untranslated.
@@ -301,7 +301,7 @@ class WC_Admin_Menus {
 				$woocommerce_menu_order[] = 'edit.php?post_type=product';
 				unset( $menu_order[ $woocommerce_separator ] );
 				unset( $menu_order[ $woocommerce_product ] );
-			} elseif ( ! in_array( $item, array( 'separator-woocommerce' ), true ) ) {
+			} elseif ( ! in_array( $item, array( 'separator-woocommerce', 'edit.php?post_type=product' ), true ) ) {
 				$woocommerce_menu_order[] = $item;
 			}
 		}
